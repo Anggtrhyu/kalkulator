@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neo-Calculator Pro</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --card-bg: #111827;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --glass: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; transition: all 0.2s ease; }
+    
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at top right, #1e1b4b, transparent), radial-gradient(circle at bottom left, #020617, transparent);
+      color: var(--text-main);
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 950px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0;
+      background: var(--card-bg);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Bagian Kiri: Kalkulator */
+    .left { padding: 32px; border-right: 1px solid var(--border); }
+    
+    .screen {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      text-align: right;
+    }
+
+    .display {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      text-align: right;
+      margin-bottom: 8px;
+      outline: none;
+    }
+
+    .result {
+      font-size: 42px;
+      font-weight: 700;
+      color: #fff;
+      word-wrap: break-word;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    button.key {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--glass);
+      color: var(--text-main);
+      font-size: 1.2rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    button.key:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+    button.key:active { transform: translateY(0); }
+
+    button.key.operator { color: #818cf8; font-weight: 600; }
+    button.key.special { color: #f472b6; }
+    button.key.equal {
+      background: var(--accent);
+      color: white;
+      grid-column: span 2;
+      aspect-ratio: auto;
+    }
+    button.key.equal:hover { background: var(--accent-hover); }
+
+    /* Bagian Kanan: History */
+    .right { padding: 32px; background: rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; }
+    
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      scrollbar-width: thin;
+    }
+
+    .hist-item {
+      padding: 12px;
+      background: var(--glass);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    .hist-item .expr { color: var(--text-muted); margin-bottom: 4px; }
+    .hist-item .res { font-weight: bold; color: var(--accent); }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .btn-sm.danger:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+    @media (max-width: 850px) {
+      .card { grid-template-columns: 1fr; }
+      .left { border-right: none; border-bottom: 1px solid var(--border); }
+      .right { height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="left">
+      <div class="screen">
+        <input id="expr" class="display" placeholder="0" readonly />
+        <div id="result" class="result">0</div>
+      </div>
+
+      <div class="keys">
+        <button class="key special" id="btn-clear">AC</button>
+        <button class="key special" id="btn-back">⌫</button>
+        <button class="key operator" data-val="**">^</button> <button class="key operator" data-val="sqrt(">√</button> <button class="key" data-val="7">7</button>
+        <button class="key" data-val="8">8</button>
+        <button class="key" data-val="9">9</button>
+        <button class="key operator" data-val="/">÷</button>
+
+        <button class="key" data-val="4">4</button>
+        <button class="key" data-val="5">5</button>
+        <button class="key" data-val="6">6</button>
+        <button class="key operator" data-val="*">×</button>
+
+        <button class="key" data-val="1">1</button>
+        <button class="key" data-val="2">2</button>
+        <button class="key" data-val="3">3</button>
+        <button class="key operator" data-val="-">−</button>
+
+        <button class="key" data-val="0">0</button>
+        <button class="key" data-val=".">.</button>
+        <button class="key" data-val="(">(</button>
+        <button class="key operator" data-val="+">+</button>
+
+        <button class="key" data-val=")">)</button>
+        <button class="key" id="btn-copy">📋</button>
+        <button class="key equal" id="btn-eval">=</button>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="history-header">
+        <h3 style="margin:0">Riwayat</h3>
+        <button class="btn-sm danger" id="btn-clear-all">Hapus</button>
+      </div>
+      <div class="history-list" id="history"></div>
+      <div class="small text-muted" style="font-size: 11px; opacity: 0.6;">
+        Info: ^ untuk pangkat, √ untuk akar kuadrat.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const exprEl = document.getElementById('expr');
+      const resultEl = document.getElementById('result');
+      const historyEl = document.getElementById('history');
+      const LS_KEY = 'calc_history_v2';
+      let current = '';
+
+      // Fungsi Matematika Tambahan
+      const sqrt = Math.sqrt; // Memungkinkan penggunaan sqrt() di dalam eval
+
+      function loadHistory(){
+        const raw = localStorage.getItem(LS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }
+
+      function saveHistory(history){
+        localStorage.setItem(LS_KEY, JSON.stringify(history.slice(0, 50)));
+        renderHistory();
+      }
+
+      function renderHistory(){
+        const history = loadHistory();
+        historyEl.innerHTML = history.length ? '' : '<div style="color:#666">Belum ada aktivitas.</div>';
+        history.forEach((h, idx) => {
+          const div = document.createElement('div');
+          div.className = 'hist-item';
+          div.innerHTML = `
+            <div class="expr">${h.expr}</div>
+            <div class="res">= ${h.result}</div>
+          `;
+          div.onclick = () => { current = h.expr; updateScreen(); };
+          historyEl.appendChild(div);
+        });
+      }
+
+      function safeEval(val){
+        if(!val) return 0;
+        // Sanitasi dan replace untuk keamanan & fungsi math
+        let sanitized = val.replace(/×/g, '*').replace(/÷/g, '/');
+        // Evaluasi
+        try {
+          // Menggunakan Function constructor dengan akses terbatas ke Math
+          const result = new Function('sqrt', `return (${sanitized})`)(Math.sqrt);
+          return Number.isFinite(result) ? parseFloat(result.toFixed(8)) : 'Error';
+        } catch {
+          return 'Error';
+        }
+      }
+
+      function updateScreen(){
+        // Percantik tampilan pangkat dan akar di layar input
+        let displayView = current.replace(/\*\*/g, '^').replace(/sqrt\(/g, '√(');
+        exprEl.value = displayView;
+        const res = safeEval(current);
+        resultEl.textContent = res === 'Error' ? '...' : res;
+      }
+
+      // Events
+      document.querySelectorAll('.key[data-val]').forEach(btn => {
+        btn.onclick = () => { current += btn.dataset.val; updateScreen(); };
+      });
+
+      document.getElementById('btn-clear').onclick = () => { current = ''; updateScreen(); };
+      document.getElementById('btn-back').onclick = () => { current = current.slice(0,-1); updateScreen(); };
+
+      document.getElementById('btn-eval').onclick = () => {
+        const res = safeEval(current);
+        if(res !== 'Error' && current !== '') {
+          const history = loadHistory();
+          history.unshift({expr: exprEl.value, result: res});
+          saveHistory(history);
+          current = res.toString();
+          updateScreen();
+        }
+      };
+
+      document.getElementById('btn-clear-all').onclick = () => {
+        if(confirm('Hapus semua riwayat?')) { localStorage.removeItem(LS_KEY); renderHistory(); }
+      };
+
+      document.getElementById('btn-copy').onclick = () => {
+        navigator.clipboard.writeText(resultEl.textContent);
+        alert('Hasil disalin!');
+      };
+
+      // Inisialisasi
+      renderHistory();
+    })();
+  </script>
+</body>
+</html>
